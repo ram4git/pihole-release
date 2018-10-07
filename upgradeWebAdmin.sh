@@ -55,9 +55,11 @@ main() {
     #git clone -q --depth 1  --branch ${SNS_TAG} "https://github.com/ram4git/AdminLTE" "${TEMP_DOWNLOAD_DIR}" &> /dev/null || return $?
     get_files_from_repository ${WEB_INTERFACE_DIR} ${ADMIN_GIT_URL} ${SNS_TAG}
 
-    if [ $? ]; then
+    retVal=$?
+
+    if [  $retVal -ne 0 ]; then
         echo "Unable to clone latest admin console"
-        logger sns "Unable to clone ${ADMIN_GIT_URL}#${SNS_TAG} to ${WEB_INTERFACE_DIR}"
+        logger sns "Unable to clone ${ADMIN_GIT_URL}#${SNS_TAG} to ${WEB_INTERFACE_DIR}" $?
         exit 0;
     fi
 
@@ -93,7 +95,7 @@ get_files_from_repository() {
 
     # Clone the repo and return the return code from this command
     logger sns "git clone -q --depth 1 --branch ${tag} ${remoteRepo} ${TEMP_DOWNLOAD_DIR}"
-    git clone -q --depth 1 --branch "${tag}" "${remoteRepo}" "${TEMP_DOWNLOAD_DIR}" &> /dev/null || return $?
+    git clone -q --depth 1 --branch "${tag}" "${remoteRepo}" "${TEMP_DOWNLOAD_DIR}" || return $?
     # Show a colored message showing it's status
     echo -e "${OVER}  ${TICK} ${str}"
     # Always return 0? Not sure this is correct
