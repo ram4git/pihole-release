@@ -36,18 +36,18 @@ main() {
     source ${NEW_SNS_CONFIG_FILE}
     CURRENT_SNS_VERSION_ID=`cat ${CURRENT_SNS_ID_FILE}`
 
-    loggeer sns "SNS_ID ${SNS_ID}"
-    loggeer sns "CURRENT_SNS_VERSION_ID ${CURRENT_SNS_VERSION_ID}"
+    logger sns "SNS_ID ${SNS_ID}"
+    logger sns "CURRENT_SNS_VERSION_ID ${CURRENT_SNS_VERSION_ID}"
 
 
-    if [ ${SNS_ID} gt ${CURRENT_SNS_VERSION_ID} ]; then
-        # UPGRADE IS NEEDED
-        echo "Needs Upgradation. Begining to upgrade"
-        logger sns "New Version of SNS Admin is available"
-    else 
+    if [ $(($SNS_ID+0)) -eq $(($CURRENT_SNS_VERSION_ID+0)) ]; then
         echo "SNS is up to date !"
         logger sns "SNS is up to date"
         exit 0;
+    else
+        # UPGRADE IS NEEDED
+        echo "Needs Upgradation. Begining to upgrade"
+        logger sns "New Version of SNS Admin is available"
     fi
 
     ## UPGRADE WEB ADMIN
