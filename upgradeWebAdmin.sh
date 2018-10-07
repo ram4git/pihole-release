@@ -49,13 +49,13 @@ main() {
     ## UPGRADE WEB ADMIN
     #git clone --branch ${SNS_TAG} https://github.com/ram4git/AdminLTE
     #git clone -q --depth 1  --branch ${SNS_TAG} "https://github.com/ram4git/AdminLTE" "${TEMP_DOWNLOAD_DIR}" &> /dev/null || return $?
-    if [ `get_files_from_repository ${WEB_INTERFACE_DIR} ${ADMIN_GIT_URL} ${SNS_TAG}` ]; then
+    get_files_from_repository ${WEB_INTERFACE_DIR} ${ADMIN_GIT_URL} ${SNS_TAG}
+
+    if [ $? ]; then
         echo "Unable to clone latest admin console"
         logger sns "Unable to clone ${ADMIN_GIT_URL}#${SNS_TAG} to ${WEB_INTERFACE_DIR}"
         exit 0;
     fi
-
-
 
     ## UPDATE SUCCESS
     DATE=`date '+%Y-%m-%d %H:%M:%S'`
