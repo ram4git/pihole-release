@@ -36,7 +36,11 @@ main() {
     source ${NEW_SNS_CONFIG_FILE}
     CURRENT_SNS_VERSION_ID=`cat ${CURRENT_SNS_ID_FILE}`
 
-    if [ "${SNS_ID}" > "${CURRENT_SNS_VERSION_ID}" ]; then
+    loggeer sns "SNS_ID ${SNS_ID}"
+    loggeer sns "CURRENT_SNS_VERSION_ID ${CURRENT_SNS_VERSION_ID}"
+
+
+    if [ ${SNS_ID} gt ${CURRENT_SNS_VERSION_ID} ]; then
         # UPGRADE IS NEEDED
         echo "Needs Upgradation. Begining to upgrade"
         logger sns "New Version of SNS Admin is available"
@@ -93,7 +97,7 @@ get_files_from_repository() {
     # Show a colored message showing it's status
     echo -e "${OVER}  ${TICK} ${str}"
     # Always return 0? Not sure this is correct
-    cp -rf "${TEMP_DOWNLOAD_DIR}/*" "${direcotry}/"
+    cp -rf ${TEMP_DOWNLOAD_DIR}/* ${direcotry}/
     logger sns "Succesfully copied latest files"
     return 0
 }
