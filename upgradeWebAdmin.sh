@@ -86,8 +86,9 @@ get_files_from_repository() {
     if [[ -d "${directory}" ]]; then
         # delete everything in it so git can clone into it
         rm -rf ${directory}
-        mkdir ${directory}
     fi
+    
+    mkdir ${directory}
 
     if [[ -d "${TEMP_DOWNLOAD_DIR}" ]]; then
         rm -rf "${TEMP_DOWNLOAD_DIR}"
