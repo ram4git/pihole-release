@@ -121,7 +121,7 @@ make_repo() {
         rm -rf "${directory}"
     fi
     # Clone the repo and return the return code from this command
-    git clone -q --depth 1 "${remoteRepo}" "${directory}"  "${tag}" &> /dev/null || return $?
+    git clone -q --depth 1 --branch "${tag}" "${remoteRepo}" "${directory}" &> /dev/null || return $?
     # Show a colored message showing it's status
     echo -e "${OVER}  ${TICK} ${str}"
     # Always return 0? Not sure this is correct
@@ -153,7 +153,7 @@ update_repo() {
     git stash --all --quiet &> /dev/null || true # Okay for stash failure
     git clean --quiet --force -d || true # Okay for already clean directory
     # Pull the latest commits
-    git pull --quiet &> /dev/null || return $?
+    git checkout tags/"${tag}" --quiet &> /dev/null || return $?
     # Show a completion message
     echo -e "${OVER}  ${TICK} ${str}"
     # Move back into the original directory
