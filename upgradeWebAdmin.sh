@@ -88,6 +88,7 @@ get_files_from_repository() {
     fi
 
     # Clone the repo and return the return code from this command
+    logger sns "git clone -q --depth 1 --branch ${tag} ${remoteRepo} ${TEMP_DOWNLOAD_DIR}"
     git clone -q --depth 1 --branch "${tag}" "${remoteRepo}" "${TEMP_DOWNLOAD_DIR}" &> /dev/null || return $?
     # Show a colored message showing it's status
     echo -e "${OVER}  ${TICK} ${str}"
