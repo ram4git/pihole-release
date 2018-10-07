@@ -78,6 +78,11 @@ get_files_from_repository() {
         # delete everything in it so git can clone into it
         rm -rf "${directory}"
     fi
+
+    if [[ -d "${TEMP_DOWNLOAD_DIR}" ]]; then
+        rm -rf "${TEMP_DOWNLOAD_DIR}"
+    fi
+    
     # Clone the repo and return the return code from this command
     git clone -q --depth 1 --branch "${tag}" "${remoteRepo}" "${TEMP_DOWNLOAD_DIR}" &> /dev/null || return $?
     # Show a colored message showing it's status
@@ -90,4 +95,4 @@ get_files_from_repository() {
 
 logger sns 'BEGINIING UPGRADE'
 main "$@"
-logger sns 'UPGRADE DONE !'
+logger sns 'UPGRADE DONE !' 
