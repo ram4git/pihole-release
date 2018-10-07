@@ -22,45 +22,46 @@ WEB_INTERFACE_DIR="/var/www/html/admin"
 CURRENT_SNS_ID_FILE=/etc/pihole/snsvid
 CURRENT_SNS_HISTORY_FILE=/etc/pihole/snshistory
 
-## GET LATEST CONFIG
-logger sns "Fetching latest config.."
-rm -rf ${NEW_SNS_CONFIG_FILE}
-wget -O ${NEW_SNS_CONFIG_FILE} https://raw.githubusercontent.com/ram4git/pihole-release/master/config
-if [ ! -f ${NEW_SNS_CONFIG_FILE} ]; then
-    echo "Unable to download SNS upgrade configuration"
-    logger sns "Unable to download SNS configuration"
-    exit 0;
-fi
+main() {
+    ## GET LATEST CONFIG
+    logger sns "Fetching latest config.."
+    rm -rf ${NEW_SNS_CONFIG_FILE}
+    wget -O ${NEW_SNS_CONFIG_FILE} https://raw.githubusercontent.com/ram4git/pihole-release/master/config
+    if [ ! -f ${NEW_SNS_CONFIG_FILE} ]; then
+        echo "Unable to download SNS upgrade configuration"
+        logger sns "Unable to download SNS configuration"
+        exit 0;
+    fi
 
-source ${NEW_SNS_CONFIG_FILE}
-CURRENT_SNS_VERSION_ID=`cat ${CURRENT_SNS_ID_FILE}`
+    source ${NEW_SNS_CONFIG_FILE}
+    CURRENT_SNS_VERSION_ID=`cat ${CURRENT_SNS_ID_FILE}`
 
-if [ "${SNS_ID}" > "${CURRENT_SNS_VERSION_ID}" ]; then
-    # UPGRADE IS NEEDED
-    echo "Needs Upgradation. Begining to upgrade"
-    logger sns "New Version of SNS Admin is available"
-else 
-    echo "SNS is up to date !"
-    logger sns "SNS is up to date"
-    exit 0;
-fi
+    if [ "${SNS_ID}" > "${CURRENT_SNS_VERSION_ID}" ]; then
+        # UPGRADE IS NEEDED
+        echo "Needs Upgradation. Begining to upgrade"
+        logger sns "New Version of SNS Admin is available"
+    else 
+        echo "SNS is up to date !"
+        logger sns "SNS is up to date"
+        exit 0;
+    fi
 
-## UPGRADE WEB ADMIN
-mkdir ${TEMP_DOWNLOAD_DIR}
-#git clone --branch ${SNS_TAG} https://github.com/ram4git/AdminLTE
-#git clone -q --depth 1  --branch ${SNS_TAG} "https://github.com/ram4git/AdminLTE" "${TEMP_DOWNLOAD_DIR}" &> /dev/null || return $?
-get_files_from_repository ${WEB_INTERFACE_DIR} ${ADMIN_GIT_URL} ${SNS_TAG}
+    ## UPGRADE WEB ADMIN
+    mkdir ${TEMP_DOWNLOAD_DIR}
+    #git clone --branch ${SNS_TAG} https://github.com/ram4git/AdminLTE
+    #git clone -q --depth 1  --branch ${SNS_TAG} "https://github.com/ram4git/AdminLTE" "${TEMP_DOWNLOAD_DIR}" &> /dev/null || return $?
+    get_files_from_repository ${WEB_INTERFACE_DIR} ${ADMIN_GIT_URL} ${SNS_TAG}
 
 
 
-## UPDATE SUCCESS
-DATE=`date '+%Y-%m-%d %H:%M:%S'`
+    ## UPDATE SUCCESS
+    DATE=`date '+%Y-%m-%d %H:%M:%S'`
 
-echo ${SNS_ID} > ${CURRENT_SNS_ID_FILE}
-echo ${DATE} ${SNS_ID} >> ${CURRENT_SNS_HISTORY_FILE}
+    echo ${SNS_ID} > ${CURRENT_SNS_ID_FILE}
+    echo ${DATE} ${SNS_ID} >> ${CURRENT_SNS_HISTORY_FILE}
 
-logger sns "Successfully upgraded SNS"
-
+    logger sns "Successfully upgraded SNS"
+}
 
 
 get_files_from_repository() {
@@ -87,3 +88,6 @@ get_files_from_repository() {
     return 0
 }
 
+logger sns 'BEGINIING UPGRADE'
+main "$@"
+logger sns 'UPGRADE DONE !'
