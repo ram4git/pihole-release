@@ -15,7 +15,7 @@ exec &> /var/log/pihole/upgrade
 set -e
 
 ## CONSTANTS
-NEW_SNS_CONFIG_FILE=/tmp/sns-config
+NEW_SNS_CONFIG_FILE=/tmp/sns_config
 TEMP_DOWNLOAD_DIR=/tmp/sns
 ADMIN_GIT_URL=https://github.com/ram4git/AdminLTE
 WEB_INTERFACE_DIR="/var/www/html/admin"
