@@ -23,7 +23,7 @@ CURRENT_SNS_ID_FILE=/etc/pihole/snsvid
 CURRENT_SNS_HISTORY_FILE=/etc/pihole/snshistory
 
 ## GET LATEST CONFIG
-logger sns "Fetching latest config..""
+logger sns "Fetching latest config.."
 rm -rf ${NEW_SNS_CONFIG_FILE}
 wget -O ${NEW_SNS_CONFIG_FILE} https://raw.githubusercontent.com/ram4git/pihole-release/master/config
 if [ ! -f ${NEW_SNS_CONFIG_FILE} ]; then
@@ -59,7 +59,7 @@ DATE=`date '+%Y-%m-%d %H:%M:%S'`
 echo ${SNS_ID} > ${CURRENT_SNS_ID_FILE}
 echo ${DATE} ${SNS_ID} >> ${CURRENT_SNS_HISTORY_FILE}
 
-logger sns 'Successfully upgraded SNS'
+logger sns "Successfully upgraded SNS"
 
 
 
