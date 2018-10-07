@@ -47,7 +47,6 @@ main() {
     fi
 
     ## UPGRADE WEB ADMIN
-    mkdir ${TEMP_DOWNLOAD_DIR}
     #git clone --branch ${SNS_TAG} https://github.com/ram4git/AdminLTE
     #git clone -q --depth 1  --branch ${SNS_TAG} "https://github.com/ram4git/AdminLTE" "${TEMP_DOWNLOAD_DIR}" &> /dev/null || return $?
     get_files_from_repository ${WEB_INTERFACE_DIR} ${ADMIN_GIT_URL} ${SNS_TAG}
@@ -81,8 +80,9 @@ get_files_from_repository() {
 
     if [[ -d "${TEMP_DOWNLOAD_DIR}" ]]; then
         rm -rf "${TEMP_DOWNLOAD_DIR}"
+        mkdir ${TEMP_DOWNLOAD_DIR}
     fi
-    
+
     # Clone the repo and return the return code from this command
     git clone -q --depth 1 --branch "${tag}" "${remoteRepo}" "${TEMP_DOWNLOAD_DIR}" &> /dev/null || return $?
     # Show a colored message showing it's status
