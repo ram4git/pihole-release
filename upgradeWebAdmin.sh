@@ -85,7 +85,8 @@ get_files_from_repository() {
     # If the directory exists,
     if [[ -d "${directory}" ]]; then
         # delete everything in it so git can clone into it
-        rm -rf "${directory}"
+        rm -rf ${directory}"
+        mkdir ${directory}
     fi
 
     if [[ -d "${TEMP_DOWNLOAD_DIR}" ]]; then
@@ -100,6 +101,7 @@ get_files_from_repository() {
     echo -e "${OVER}  ${TICK} ${str}"
     # Always return 0? Not sure this is correct
     cp -rf ${TEMP_DOWNLOAD_DIR}/* ${direcotry}/
+    chown -R pi:pi ${directory}
     logger sns "Succesfully copied latest files"
     return 0
 }
