@@ -23,32 +23,37 @@ CURRENT_SNS_ID_FILE=/etc/pihole/snsvid
 CURRENT_SNS_HISTORY_FILE=/etc/pihole/snshistory
 
 main() {
+    DATE=`date '+%Y-%m-%d %H:%M:%S'`
+
+    logger SNS "${DATE} Checking if upgrade is needed!"
     ## GET LATEST CONFIG
-    logger sns "Fetching latest config.."
+    logger SNS "Fetching latest config.."
     rm -rf ${NEW_SNS_CONFIG_FILE}
     wget -O ${NEW_SNS_CONFIG_FILE} https://raw.githubusercontent.com/ram4git/pihole-release/master/config
     if [ ! -f ${NEW_SNS_CONFIG_FILE} ]; then
         echo "Unable to download SNS upgrade configuration"
-        logger sns "Unable to download SNS configuration"
+        logger SNS "Unable to download SNS configuration"
         exit 0;
     fi
 
     source ${NEW_SNS_CONFIG_FILE}
     CURRENT_SNS_VERSION_ID=`cat ${CURRENT_SNS_ID_FILE}`
 
-    logger sns "SNS_ID ${SNS_ID}"
-    logger sns "CURRENT_SNS_VERSION_ID ${CURRENT_SNS_VERSION_ID}"
+    logger SNS "SNS_ID ${SNS_ID}"
+    logger SNS "CURRENT_SNS_VERSION_ID ${CURRENT_SNS_VERSION_ID}"
 
 
     if [ $(($SNS_ID+0)) -eq $(($CURRENT_SNS_VERSION_ID+0)) ]; then
         echo "SNS is up to date !"
-        logger sns "SNS is up to date"
+        logger SNS "SNS is up to date"
         exit 0;
     else
         # UPGRADE IS NEEDED
         echo "Needs Upgradation. Begining to upgrade"
-        logger sns "New Version of SNS Admin is available"
+        logger SNS "New Version of SNS Admin is available"
     fi
+
+    logger SNS "Begining Upgrade"
 
     ## UPGRADE WEB ADMIN
     #git clone --branch ${SNS_TAG} https://github.com/ram4git/AdminLTE
@@ -59,17 +64,16 @@ main() {
 
     if [  $retVal -ne 0 ]; then
         echo "Unable to clone latest admin console"
-        logger sns "Unable to clone ${ADMIN_GIT_URL}#${SNS_TAG} to ${WEB_INTERFACE_DIR}" $?
+        logger SNS "Unable to clone ${ADMIN_GIT_URL}#${SNS_TAG} to ${WEB_INTERFACE_DIR}" $?
         exit 0;
     fi
 
     ## UPDATE SUCCESS
-    DATE=`date '+%Y-%m-%d %H:%M:%S'`
 
     echo ${SNS_ID} > ${CURRENT_SNS_ID_FILE}
     echo ${DATE} ${SNS_ID} >> ${CURRENT_SNS_HISTORY_FILE}
 
-    logger sns "Successfully upgraded SNS"
+    logger SNS "Successfully upgraded SNS"
 }
 
 
@@ -206,14 +210,14 @@ get_files_from_repository() {
     echo ""
 
     # Clone the repo and return the return code from this command
-    #logger sns "git clone -q --depth 1 --branch ${tag} ${remoteRepo} ${TEMP_DOWNLOAD_DIR}"
+    #logger SNS "git clone -q --depth 1 --branch ${tag} ${remoteRepo} ${TEMP_DOWNLOAD_DIR}"
     #git clone -q --depth 1 --branch "${tag}" "${remoteRepo}" "${TEMP_DOWNLOAD_DIR}" || return $?
     # Show a colored message showing it's status
     echo -e "${OVER}  ${TICK} ${str}"
     # Always return 0? Not sure this is correct
     #cp -rf ${TEMP_DOWNLOAD_DIR}/* ${direcotry}/
     chown -R pi:pi ${directory}
-    logger sns "Succesfully copied latest files"
+    logger SNS "Succesfully copied latest files"
     return 0
 }
 
@@ -248,6 +252,5 @@ get_files_from_repository() {
 # }
 
 
-logger sns 'BEGINIING UPGRADE'
 main "$@"
-logger sns 'UPGRADE DONE !' 
+logger SNS 'UPGRADE CHECK DONE !' 
