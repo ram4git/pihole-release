@@ -73,11 +73,102 @@ main() {
 }
 
 
+
+
+# A function for checking if a folder is a git repository
+is_repo() {
+    # Use a named, local variable instead of the vague $1, which is the first argument passed to this function
+    # These local variables should always be lowercase
+    local directory="${1}"
+    # A local variable for the current directory
+    local curdir
+    # A variable to store the return code
+    local rc
+    # Assign the current directory variable by using pwd
+    curdir="${PWD}"
+    # If the first argument passed to this function is a directory,
+    if [[ -d "${directory}" ]]; then
+        # move into the directory
+        cd "${directory}"
+        # Use git to check if the folder is a repo
+        # git -C is not used here to support git versions older than 1.8.4
+        git status --short &> /dev/null || rc=$?
+    # If the command was not successful,
+    else
+        # Set a non-zero return code if directory does not exist
+        rc=1
+    fi
+    # Move back into the directory the user started in
+    cd "${curdir}"
+    # Return the code; if one is not set, return 0
+    return "${rc:-0}"
+}
+
+# A function to clone a repo
+make_repo() {
+    # Set named variables for better readability
+    local directory="${1}"
+    local remoteRepo="${2}"
+    local tag="${3}"
+
+    # The message to display when this function is running
+    str="Clone ${remoteRepo} into ${directory}"
+    # Display the message and use the color table to preface the message with an "info" indicator
+    echo -ne "  ${INFO} ${str}..."
+    # If the directory exists,
+    if [[ -d "${directory}" ]]; then
+        # delete everything in it so git can clone into it
+        rm -rf "${directory}"
+    fi
+    # Clone the repo and return the return code from this command
+    git clone -q --depth 1 "${remoteRepo}" "${directory}"  "${tag}" &> /dev/null || return $?
+    # Show a colored message showing it's status
+    echo -e "${OVER}  ${TICK} ${str}"
+    # Always return 0? Not sure this is correct
+    return 0
+}
+
+# We need to make sure the repos are up-to-date so we can effectively install Clean out the directory if it exists for git to clone into
+update_repo() {
+    # Use named, local variables
+    # As you can see, these are the same variable names used in the last function,
+    # but since they are local, their scope does not go beyond this function
+    # This helps prevent the wrong value from being assigned if you were to set the variable as a GLOBAL one
+    local directory="${1}"
+    local tag="${2}"
+    local curdir
+
+    # A variable to store the message we want to display;
+    # Again, it's useful to store these in variables in case we need to reuse or change the message;
+    # we only need to make one change here
+    local str="Update repo in ${1}"
+
+    # Make sure we know what directory we are in so we can move back into it
+    curdir="${PWD}"
+    # Move into the directory that was passed as an argument
+    cd "${directory}" &> /dev/null || return 1
+    # Let the user know what's happening
+    echo -ne "  ${INFO} ${str}..."
+    # Stash any local commits as they conflict with our working code
+    git stash --all --quiet &> /dev/null || true # Okay for stash failure
+    git clean --quiet --force -d || true # Okay for already clean directory
+    # Pull the latest commits
+    git pull --quiet &> /dev/null || return $?
+    # Show a completion message
+    echo -e "${OVER}  ${TICK} ${str}"
+    # Move back into the original directory
+    cd "${curdir}" &> /dev/null || return 1
+    return 0
+}
+
+
 get_files_from_repository() {
     # Set named variables for better readability
     local directory="${1}"
     local remoteRepo="${2}"
     local tag="${3}"
+    local str="Check for existing repository in ${1}"
+
     # The message to display when this function is running
     str="Clone ${remoteRepo} into ${directory}"
     # Display the message and use the color table to preface the message with an "info" indicator
@@ -95,17 +186,67 @@ get_files_from_repository() {
         mkdir ${TEMP_DOWNLOAD_DIR}
     fi
 
+
+    # Show the message
+    echo -ne "  ${INFO} ${str}..."
+    # Check if the directory is a repository
+    if is_repo "${directory}"; then
+        # Show that we're checking it
+        echo -e "${OVER}  ${TICK} ${str}"
+        # Update the repo, returning an error message on failure
+        update_repo "${directory}" "${tag}" || { echo -e "\\n  ${COL_LIGHT_RED}Error: Could not update local repository. Contact support.${COL_NC}"; exit 1; }
+    # If it's not a .git repo,
+    else
+        # Show an error
+        echo -e "${OVER}  ${CROSS} ${str}"
+        # Attempt to make the repository, showing an error on failure
+        make_repo "${directory}" "${remoteRepo}"  "${tag}"|| { echo -e "\\n  ${COL_LIGHT_RED}Error: Could not update local repository. Contact support.${COL_NC}"; exit 1; }
+    fi
+    # echo a blank line
+    echo ""
+
     # Clone the repo and return the return code from this command
-    logger sns "git clone -q --depth 1 --branch ${tag} ${remoteRepo} ${TEMP_DOWNLOAD_DIR}"
-    git clone -q --depth 1 --branch "${tag}" "${remoteRepo}" "${TEMP_DOWNLOAD_DIR}" || return $?
+    #logger sns "git clone -q --depth 1 --branch ${tag} ${remoteRepo} ${TEMP_DOWNLOAD_DIR}"
+    #git clone -q --depth 1 --branch "${tag}" "${remoteRepo}" "${TEMP_DOWNLOAD_DIR}" || return $?
     # Show a colored message showing it's status
     echo -e "${OVER}  ${TICK} ${str}"
     # Always return 0? Not sure this is correct
-    cp -rf ${TEMP_DOWNLOAD_DIR}/* ${direcotry}/
+    #cp -rf ${TEMP_DOWNLOAD_DIR}/* ${direcotry}/
     chown -R pi:pi ${directory}
     logger sns "Succesfully copied latest files"
     return 0
 }
+
+# A function that combines the functions previously made
+# getGitFiles() {
+#     # Setup named variables for the git repos
+#     # We need the directory
+#     local directory="${1}"
+#     # as well as the repo URL
+#     local remoteRepo="${2}"
+#     # A local variable containing the message to be displayed
+#     local str="Check for existing repository in ${1}"
+#     # Show the message
+#     echo -ne "  ${INFO} ${str}..."
+#     # Check if the directory is a repository
+#     if is_repo "${directory}"; then
+#         # Show that we're checking it
+#         echo -e "${OVER}  ${TICK} ${str}"
+#         # Update the repo, returning an error message on failure
+#         update_repo "${directory}" || { echo -e "\\n  ${COL_LIGHT_RED}Error: Could not update local repository. Contact support.${COL_NC}"; exit 1; }
+#     # If it's not a .git repo,
+#     else
+#         # Show an error
+#         echo -e "${OVER}  ${CROSS} ${str}"
+#         # Attempt to make the repository, showing an error on failure
+#         make_repo "${directory}" "${remoteRepo}" || { echo -e "\\n  ${COL_LIGHT_RED}Error: Could not update local repository. Contact support.${COL_NC}"; exit 1; }
+#     fi
+#     # echo a blank line
+#     echo ""
+#     # and return success?
+#     return 0
+# }
+
 
 logger sns 'BEGINIING UPGRADE'
 main "$@"
